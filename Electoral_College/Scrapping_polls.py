@@ -5,7 +5,7 @@ import os
 
 years_election = [1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020]
 months_considered = [9, 10, 11]
-
+republicans = ['George Bush', 'Bob Dole', 'George W. Bush', 'John McCain', 'Mitt Romney', 'Donald Trump']
 
 def load_polls():
     df = pd.read_csv('../data/poll_average_1968_2020.csv')
@@ -111,9 +111,19 @@ def reformat_dataframe_2(df):
     return polls_2
 
 
+def Rep_Dem(df):
+    # adds the party of a candidate based on his name
+    names = df['candidate_name']
+    party = []
+    for i, name in enumerate(names):
+        if name in republicans:
+            party.append(1)
+        else:
+            party.append(0)
+    df['republican'] = party
+    return df
+
+
+
 if __name__ == '__main__':
-    for file in os.listdir('states/'):
-        path = os.path.join('states/', file)
-        df_state = pd.read_csv(path)
-        if len(df_state) != 18:
-            print(file)
+    pass
