@@ -7,3 +7,7 @@ Mississippi 2012
 Wyoming 2004 
 Wyoming 2012 
 How to handle such situation ? Train with less data? We could try out.
+To fix: 3 NaN in the House of Representative votes
+Question: Do we want to perform a classification task ? Ie vote = Rep or Dem, or do we want to perform 
+a Regression task when obtaining the repartition of votes for every state ? 
+Left to check: the House of Reps vote, renew the construction of the frames + how we computed the scores.

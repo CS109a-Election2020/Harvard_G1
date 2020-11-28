@@ -139,6 +139,7 @@ def merge_dfs():
             df_reps.sort_values(by='Year', inplace=True, ascending=True)
             df_reps.to_csv('states/'+file_reps)
 
+
 def join_dfs():
     for i, f in enumerate(os.listdir('states/')):
         if '_' in f or 'txt' in f:
@@ -160,6 +161,7 @@ def join_dfs():
             df_reps['Year'] = df_reps['Year'] + 2
             merged_df = pd.merge(df, df_reps, on=['Year', 'republican'])
             merged_df.to_csv('states/v1_'+f)
+
 
 
 
