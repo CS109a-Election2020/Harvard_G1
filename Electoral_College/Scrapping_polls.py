@@ -124,6 +124,47 @@ def Rep_Dem(df):
     return df
 
 
+def merge_dfs():
+    for i, file in enumerate(os.listdir('states/')):
+        if '_' in file or 'txt' in file:
+            continue
+        else:
+            split = file.split('.')
+            file_reps = split[0] + '_House.' + split[1]
+            df = pd.read_csv('states/'+file)
+            df_reps = pd.read_csv('states/'+file_reps)
+            df_reps['republican'] = [1]*len(df_reps)
+            for i in range(9):
+                df_reps = df_reps.append(df_reps.loc[[i] * 1].assign(**{'republican': 0, 'Rep_House_Prop': 1 - df_reps.loc[i]['Rep_House_Prop']}), ignore_index=True)
+            df_reps.sort_values(by='Year', inplace=True, ascending=True)
+            df_reps.to_csv('states/'+file_reps)
+
+def join_dfs():
+    for i, f in enumerate(os.listdir('states/')):
+        if '_' in f or 'txt' in f:
+            continue
+        else:
+            split = f.split('.')
+            file_reps = split[0] + '_House.' + split[1]
+            df = pd.read_csv('states/'+f)
+            df['Year'] = df['cycle']
+            columns_df = list(df.columns)
+            for column in columns_df:
+                if column.startswith('Unnamed'):
+                    columns_df.remove(column)
+            columns_df = columns_df[1:]
+            df = df[columns_df]
+            df_reps = pd.read_csv('states/'+file_reps)
+            columns_reps = df_reps.columns[2:]
+            df_reps = df_reps[columns_reps]
+            df_reps['Year'] = df_reps['Year'] + 2
+            merged_df = pd.merge(df, df_reps, on=['Year', 'republican'])
+            merged_df.to_csv('states/v1_'+f)
+
+
+
+
+
 
 if __name__ == '__main__':
-    pass
+    join_dfs()
