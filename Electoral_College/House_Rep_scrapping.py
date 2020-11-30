@@ -60,11 +60,16 @@ def extract_info(file):
     soup = BeautifulSoup(file_contents, 'html.parser')
     table = soup.find_all(attrs={'class': 'wikitable'})[2:52]  # the first two wiki tables are not for states results
     scores = []
+    rep = 0
+    dem = 0
     for table_state in table:
-        count_rep = len([m.start() for m in re.finditer('Republican', table_state.text)])
-        count_dem = len([m.start() for m in re.finditer('Democrat', table_state.text)])
+        for s in table_state.text.split(' '):
+            if 'Republican' in s and ('1' in s or '2' in s) and '(' not in s:
+                rep += 1
+            if 'Democratic' in s and ('1' in s or '2' in s) and '(' not in s:
+                dem += 1
         try:
-            pre_rep = (count_rep / (count_rep + count_dem))
+            pre_rep = (rep / (rep + dem))
             scores.append(pre_rep)
         except ZeroDivisionError:
             scores.append(np.nan)
@@ -79,6 +84,7 @@ def extract_scores():
         scores[year] = scores_year
     return scores
 
+
 def write_dfs():
     scores = extract_scores()
     stacked_scores = []
@@ -90,9 +96,9 @@ def write_dfs():
         scores_state = stacked_scores[:, i]
         df_state = pd.DataFrame({'Rep_House_Prop': scores_state,
                                  'Year': years_election,
-                                 'State': [state]*9})
-        df_state.to_csv('states/'+str(state)+'_House.csv')
+                                 'State': [state] * 9})
+        df_state.to_csv('states/' + str(state) + '_House.csv')
 
 
 if __name__ == '__main__':
-    pass
+    print(extract_scores())

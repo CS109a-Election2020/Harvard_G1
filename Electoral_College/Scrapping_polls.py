@@ -4,8 +4,13 @@ import pandas as pd
 import os
 
 years_election = [1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020]
+years_election_house = [1986, 1990, 1994, 1998, 2002, 2006, 2010, 2014, 2018]
 months_considered = [9, 10, 11]
+indexes_beginning = [3, 3, 5, 3, 3, 4, 4, 6, 7]  # in order to extract the relevant wiki tables
 republicans = ['George Bush', 'Bob Dole', 'George W. Bush', 'John McCain', 'Mitt Romney', 'Donald Trump']
+to_avoid = [('Alaska', 2010), ('Delaware', 2010), ('Idaho', 1986), ('Mississippi', 2010), ('Wyoming', 2002),
+            ('Wyoming', 2010)]  # in order to remove the votes from House of Reps
+
 
 def load_polls():
     df = pd.read_csv('../data/poll_average_1968_2020.csv')
@@ -131,13 +136,14 @@ def merge_dfs():
         else:
             split = file.split('.')
             file_reps = split[0] + '_House.' + split[1]
-            df = pd.read_csv('states/'+file)
-            df_reps = pd.read_csv('states/'+file_reps)
-            df_reps['republican'] = [1]*len(df_reps)
+            df = pd.read_csv('states/' + file)
+            df_reps = pd.read_csv('states/' + file_reps)
+            df_reps['republican'] = [1] * len(df_reps)
             for i in range(9):
-                df_reps = df_reps.append(df_reps.loc[[i] * 1].assign(**{'republican': 0, 'Rep_House_Prop': 1 - df_reps.loc[i]['Rep_House_Prop']}), ignore_index=True)
+                df_reps = df_reps.append(df_reps.loc[[i] * 1].assign(
+                    **{'republican': 0, 'Rep_House_Prop': 1 - df_reps.loc[i]['Rep_House_Prop']}), ignore_index=True)
             df_reps.sort_values(by='Year', inplace=True, ascending=True)
-            df_reps.to_csv('states/'+file_reps)
+            df_reps.to_csv('states/' + file_reps)
 
 
 def join_dfs():
@@ -147,7 +153,7 @@ def join_dfs():
         else:
             split = f.split('.')
             file_reps = split[0] + '_House.' + split[1]
-            df = pd.read_csv('states/'+f)
+            df = pd.read_csv('states/' + f)
             df['Year'] = df['cycle']
             columns_df = list(df.columns)
             for column in columns_df:
@@ -155,18 +161,67 @@ def join_dfs():
                     columns_df.remove(column)
             columns_df = columns_df[1:]
             df = df[columns_df]
-            df_reps = pd.read_csv('states/'+file_reps)
+            df_reps = pd.read_csv('states/' + file_reps)
             columns_reps = df_reps.columns[2:]
             df_reps = df_reps[columns_reps]
             df_reps['Year'] = df_reps['Year'] + 2
             merged_df = pd.merge(df, df_reps, on=['Year', 'republican'])
-            merged_df.to_csv('states/v1_'+f)
+            merged_df.to_csv('states/v1_' + f)
 
 
+###### correct the House of Representative scores #######
 
 
+def extract_info(file, ind_beg):
+    file_contents = open(file, 'rb').read()
+    soup = BeautifulSoup(file_contents, 'html.parser')
+    table = soup.find_all(attrs={'class': 'wikitable'})[
+            ind_beg - 1:ind_beg + 49]  # the first two wiki tables are not for states results
+    scores = []
+    for i, table_state in enumerate(table):
+        rep = 0
+        dem = 0
+        for s in table_state.text.split(' '):
+            if 'Republican' in s and ('1' in s or '2' in s) and '(' not in s:
+                rep += 1
+            if 'Democratic' in s and ('1' in s or '2' in s) and '(' not in s:
+                dem += 1
+        try:
+            pre_rep = (rep / (rep + dem))
+            scores.append(pre_rep)
+        except ZeroDivisionError:
+            scores.append(np.nan)
+    return scores
 
 
+def extract_scores():
+    scores = []
+    for i, year in enumerate(years_election_house):
+        file = 'states/' + str(year) + '.txt'
+        scores_year = extract_info(file, indexes_beginning[i])
+        scores.append(scores_year)
+    return np.array(scores)
 
+
+def reformat_dfs():
+    array = extract_scores()
+    for i, f in enumerate(os.listdir('states')):
+        if 'txt' not in f:
+            scores_rep_states = array[:, i - 9].tolist()
+            df = pd.read_csv('states/' + f)
+            for tuple in to_avoid:
+                if f[3:-4] in tuple[0]:
+                    index_to_remove = np.argwhere(np.array(years_election_house) == tuple[1])[0][0]
+                    scores_rep_states.pop(index_to_remove)
+            df.loc[df['republican'] == 1, 'Rep_House_Prop'] = scores_rep_states
+            df.loc[df['republican'] == 0, 'Rep_House_Prop'] = 1 - np.array(scores_rep_states)
+            df.drop(df.columns[0], axis=1, inplace=True)
+            df.to_csv('states/' + f, index=False)
+
+
+# todo: download the polls from github before commit/push
 if __name__ == '__main__':
-    join_dfs()
+    for i, f in enumerate(os.listdir('states')):
+        if 'txt' not in f:
+            df = pd.read_csv('states/' + f)
+            print(f, df.shape)

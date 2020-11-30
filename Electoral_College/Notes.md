@@ -11,3 +11,7 @@ To fix: 3 NaN in the House of Representative votes
 Question: Do we want to perform a classification task ? Ie vote = Rep or Dem, or do we want to perform 
 a Regression task when obtaining the repartition of votes for every state ? 
 Left to check: the House of Reps vote, renew the construction of the frames + how we computed the scores.
+We changed the House of Reps vote, everything is okay except for the 2018 election, which is going to be manually fixed.
+Fix the polls for Alabama, to be pulled from github
+We checked the lengths of the dfs, being coherent with the polls
+Now, going to manually fix the results from the 2018 election: done
