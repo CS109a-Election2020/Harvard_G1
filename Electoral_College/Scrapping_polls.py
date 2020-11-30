@@ -219,7 +219,7 @@ def reformat_dfs():
             df.to_csv('states/' + f, index=False)
 
 
-# todo: download the polls from github before commit/push
+
 if __name__ == '__main__':
     for i, f in enumerate(os.listdir('states')):
         if 'txt' not in f:
