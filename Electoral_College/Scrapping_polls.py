@@ -219,9 +219,5 @@ def reformat_dfs():
             df.to_csv('states/' + f, index=False)
 
 
-
 if __name__ == '__main__':
-    for i, f in enumerate(os.listdir('states')):
-        if 'txt' not in f:
-            df = pd.read_csv('states/' + f)
-            print(f, df.shape)
+    pass
