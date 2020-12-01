@@ -11,3 +11,4 @@ To fix: 3 NaN in the House of Representative votes
 Question: Do we want to perform a classification task ? Ie vote = Rep or Dem, or do we want to perform 
 a Regression task when obtaining the repartition of votes for every state ? 
 How are we going to encode the collinearity matrix ? for the weights
+How to account for non-Rep and non-Dem winners? Like Vermont and Bernie

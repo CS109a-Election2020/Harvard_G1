@@ -28,8 +28,4 @@ def get_loyalty():
 
 
 if __name__ == '__main__':
-    for i, f in enumerate(os.listdir('states/')):
-        if 'v2' in f:
-            df = pd.read_csv('states/'+f)
-            state = f[2:]
-            df.to_csv('states/'+state+'.csv')
+    pass
